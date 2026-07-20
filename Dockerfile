@@ -6,4 +6,4 @@ COPY / .
 
 RUN chmod +x gradlew && ./gradlew --no-daemon installDist -x test
 
-CMD ./build/install/app/bin/app
+CMD ./build/install/app/bin/app --spring.profiles.active=production

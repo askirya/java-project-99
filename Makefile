@@ -13,7 +13,7 @@ run-dist:
 	./build/install/app/bin/app
 
 run:
-	./gradlew bootRun
+	./gradlew bootRun --args='--spring.profiles.active=development'
 
 test:
 	./gradlew test

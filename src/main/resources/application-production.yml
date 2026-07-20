@@ -1,0 +1,4 @@
+# Datasource is configured in ProductionDataSourceConfig from DATABASE_URL
+spring:
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect

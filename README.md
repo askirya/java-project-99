@@ -4,23 +4,23 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=askirya_java-project-99&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=askirya_java-project-99)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=askirya_java-project-99&metric=coverage)](https://sonarcloud.io/summary/new_code?id=askirya_java-project-99)
 
-## Task Manager
+## Менеджер задач
 
-Spring Boot application (Hexlet java-project-99).
+Приложение на Spring Boot (проект Hexlet java-project-99).
 
-### Deployed app
+### Задеплоенное приложение
 
-https://YOUR-APP-NAME.onrender.com/welcome
+https://java-project-99-htgx.onrender.com/welcome
 
-### Requirements
+### Требования
 
 - OpenJDK 21
 - Gradle 8.7+
 
-### Usage
+### Запуск
 
 ```bash
 make build
 make run
-# open http://localhost:8080/welcome
+# открыть http://localhost:8080/welcome
 ```
