@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: java-project-99
+    runtime: docker
+    plan: free
+    healthCheckPath: /welcome
+    envVars:
+      - key: PORT
+        value: 8080
