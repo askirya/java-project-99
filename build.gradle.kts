@@ -26,9 +26,23 @@ repositories {
     mavenCentral()
 }
 
+val mapstructVersion = "1.6.3"
+val jacksonNullableVersion = "0.2.6"
+val lombokMapstructBindingVersion = "0.2.0"
+val instancioVersion = "5.4.0"
+val jsonUnitVersion = "4.1.0"
+
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    implementation("org.mapstruct:mapstruct:$mapstructVersion")
+    annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:$lombokMapstructBindingVersion")
+
+    implementation("org.openapitools:jackson-databind-nullable:$jacksonNullableVersion")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
@@ -37,6 +51,9 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation("org.instancio:instancio-junit:$instancioVersion")
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:$jsonUnitVersion")
     testCompileOnly("org.projectlombok:lombok")
     testAnnotationProcessor("org.projectlombok:lombok")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

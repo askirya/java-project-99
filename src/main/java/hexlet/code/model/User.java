@@ -2,11 +2,14 @@ package hexlet.code.model;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
@@ -33,9 +36,12 @@ public class User {
 
     private String lastName;
 
+    @Email
+    @Column(unique = true)
     private String email;
 
-    private String password;
+    @NotBlank
+    private String passwordDigest;
 
     @CreatedDate
     private LocalDate createdAt;

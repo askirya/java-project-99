@@ -29,9 +29,26 @@ public class ProductionDataSourceConfig {
         }
 
         URI dbUri = new URI(databaseUrl);
-        String[] userInfo = dbUri.getUserInfo().split(":", 2);
-        String username = userInfo[0];
-        String password = userInfo.length > 1 ? userInfo[1] : "";
+        String rawUserInfo = dbUri.getUserInfo();
+        if (rawUserInfo == null || rawUserInfo.isBlank()) {
+            throw new IllegalStateException("DATABASE_URL must contain user credentials");
+        }
+
+        int separatorIndex = rawUserInfo.indexOf(':');
+        String username;
+        String password;
+        if (separatorIndex >= 0) {
+            username = rawUserInfo.substring(0, separatorIndex);
+            password = rawUserInfo.substring(separatorIndex + 1);
+        } else {
+            username = rawUserInfo;
+            password = "";
+        }
+
+        if (username.isBlank()) {
+            throw new IllegalStateException("DATABASE_URL username is missing");
+        }
+
         String jdbcUrl = "jdbc:postgresql://" + dbUri.getHost()
                 + ":" + dbUri.getPort()
                 + dbUri.getPath();
