@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.JwtRequestPostProcessor;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -19,6 +20,7 @@ import java.util.HashMap;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -42,6 +44,7 @@ class UserControllerTest {
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
+    private JwtRequestPostProcessor token;
 
     @BeforeEach
     void setUp() {
@@ -55,11 +58,19 @@ class UserControllerTest {
         testUser.setEmail("john@google.com");
         testUser.setPasswordDigest(passwordEncoder.encode("password"));
         userRepository.save(testUser);
+
+        token = jwt().jwt(builder -> builder.subject(testUser.getEmail()));
+    }
+
+    @Test
+    void testIndexWithoutAuth() throws Exception {
+        mockMvc.perform(get("/api/users"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testIndex() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/users"))
+        MvcResult result = mockMvc.perform(get("/api/users").with(token))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -71,7 +82,7 @@ class UserControllerTest {
 
     @Test
     void testShow() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/users/" + testUser.getId()))
+        MvcResult result = mockMvc.perform(get("/api/users/" + testUser.getId()).with(token))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -88,7 +99,7 @@ class UserControllerTest {
 
     @Test
     void testShowNotFound() throws Exception {
-        mockMvc.perform(get("/api/users/99999"))
+        mockMvc.perform(get("/api/users/99999").with(token))
                 .andExpect(status().isNotFound());
     }
 
@@ -101,6 +112,7 @@ class UserControllerTest {
         data.put("password", "some-password");
 
         MvcResult result = mockMvc.perform(post("/api/users")
+                        .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
                 .andExpect(status().isCreated())
@@ -126,6 +138,7 @@ class UserControllerTest {
         data.put("password", "ab");
 
         mockMvc.perform(post("/api/users")
+                        .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
                 .andExpect(status().isBadRequest());
@@ -141,6 +154,7 @@ class UserControllerTest {
         String oldLastName = testUser.getLastName();
 
         MvcResult result = mockMvc.perform(put("/api/users/" + testUser.getId())
+                        .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
                 .andExpect(status().isOk())
@@ -160,10 +174,59 @@ class UserControllerTest {
     }
 
     @Test
+    void testUpdateAnotherUserForbidden() throws Exception {
+        User another = Instancio.of(User.class)
+                .ignore(Select.field(User::getId))
+                .ignore(Select.field(User::getCreatedAt))
+                .ignore(Select.field(User::getUpdatedAt))
+                .create();
+        another.setEmail("other@google.com");
+        another.setPasswordDigest(passwordEncoder.encode("password"));
+        userRepository.save(another);
+
+        var data = new HashMap<String, String>();
+        data.put("firstName", "Hacker");
+
+        mockMvc.perform(put("/api/users/" + another.getId())
+                        .with(token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void testDelete() throws Exception {
-        mockMvc.perform(delete("/api/users/" + testUser.getId()))
+        mockMvc.perform(delete("/api/users/" + testUser.getId()).with(token))
                 .andExpect(status().isNoContent());
 
         assertThat(userRepository.existsById(testUser.getId())).isFalse();
+    }
+
+    @Test
+    void testLogin() throws Exception {
+        var data = new HashMap<String, String>();
+        data.put("username", testUser.getEmail());
+        data.put("password", "password");
+
+        MvcResult result = mockMvc.perform(post("/api/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String tokenValue = result.getResponse().getContentAsString();
+        assertThat(tokenValue).isNotBlank();
+    }
+
+    @Test
+    void testLoginWithInvalidCredentials() throws Exception {
+        var data = new HashMap<String, String>();
+        data.put("username", testUser.getEmail());
+        data.put("password", "wrong-password");
+
+        mockMvc.perform(post("/api/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
+                .andExpect(status().isUnauthorized());
     }
 }
