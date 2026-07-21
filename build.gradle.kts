@@ -80,5 +80,6 @@ sonar {
         property("sonar.projectKey", "askirya_java-project-99")
         property("sonar.organization", "askirya")
         property("sonar.host.url", "https://sonarcloud.io")
+        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
     }
 }
