@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 
 /**
  * Maps task DTOs to entity and back.
+ * Field injection is required for MapStruct-generated Spring beans.
  */
 @Mapper(
         uses = {JsonNullableMapper.class},
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
         unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
+@SuppressWarnings("java:S6813")
 public abstract class TaskMapper {
 
     @Autowired

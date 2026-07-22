@@ -123,6 +123,66 @@ class TaskControllerTest {
     }
 
     @Test
+    void testIndexWithFilters() throws Exception {
+        TaskStatus fixedStatus = new TaskStatus();
+        fixedStatus.setName("ToBeFixed");
+        fixedStatus.setSlug("to_be_fixed");
+        taskStatusRepository.save(fixedStatus);
+
+        Task otherTask = new Task();
+        otherTask.setName("Other task");
+        otherTask.setTaskStatus(draftStatus);
+        taskRepository.save(otherTask);
+
+        Task matched = new Task();
+        matched.setName("Create new version");
+        matched.setDescription("Description of task");
+        matched.setIndex(3245);
+        matched.setTaskStatus(fixedStatus);
+        matched.setAssignee(testUser);
+        matched.setLabels(Set.of(bugLabel));
+        taskRepository.save(matched);
+
+        MvcResult result = mockMvc.perform(get("/api/tasks")
+                        .param("titleCont", "create")
+                        .param("assigneeId", String.valueOf(testUser.getId()))
+                        .param("status", "to_be_fixed")
+                        .param("labelId", String.valueOf(bugLabel.getId()))
+                        .with(token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        assertThatJson(body).isArray().hasSize(1);
+        assertThatJson(body).node("[0]").and(
+                v -> v.node("id").isEqualTo(matched.getId()),
+                v -> v.node("title").isEqualTo("Create new version"),
+                v -> v.node("content").isEqualTo("Description of task"),
+                v -> v.node("status").isEqualTo("to_be_fixed"),
+                v -> v.node("assignee_id").isEqualTo(testUser.getId()),
+                v -> v.node("index").isEqualTo(3245)
+        );
+    }
+
+    @Test
+    void testIndexFilterByTitleOnly() throws Exception {
+        Task another = new Task();
+        another.setName("Unrelated");
+        another.setTaskStatus(draftStatus);
+        taskRepository.save(another);
+
+        MvcResult result = mockMvc.perform(get("/api/tasks")
+                        .param("titleCont", "Task")
+                        .with(token))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        assertThatJson(body).isArray().hasSize(1);
+        assertThatJson(body).node("[0].title").isEqualTo("Task 1");
+    }
+
+    @Test
     void testShow() throws Exception {
         MvcResult result = mockMvc.perform(get("/api/tasks/" + testTask.getId()).with(token))
                 .andExpect(status().isOk())

@@ -1,6 +1,5 @@
 package hexlet.code.util;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
@@ -15,8 +14,15 @@ import java.time.temporal.ChronoUnit;
 @Component
 public class JWTUtils {
 
-    @Autowired
-    private JwtEncoder encoder;
+    private final JwtEncoder encoder;
+
+    /**
+     * Creates JWT utility.
+     * @param encoder JWT encoder
+     */
+    public JWTUtils(JwtEncoder encoder) {
+        this.encoder = encoder;
+    }
 
     /**
      * Generates a JWT for the given username (email).

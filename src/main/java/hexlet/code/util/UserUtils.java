@@ -2,7 +2,6 @@ package hexlet.code.util;
 
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -13,8 +12,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserUtils {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+
+    /**
+     * Creates user utils.
+     * @param userRepository users repository
+     */
+    public UserUtils(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     /**
      * Returns currently authenticated user.

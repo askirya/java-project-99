@@ -6,7 +6,6 @@ import hexlet.code.model.User;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,17 +21,29 @@ import java.util.Map;
 @Component
 public class DataInitializer implements ApplicationRunner {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final TaskStatusRepository taskStatusRepository;
+    private final LabelRepository labelRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private TaskStatusRepository taskStatusRepository;
-
-    @Autowired
-    private LabelRepository labelRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    /**
+     * Creates data initializer.
+     * @param userRepository users repository
+     * @param taskStatusRepository statuses repository
+     * @param labelRepository labels repository
+     * @param passwordEncoder password encoder
+     */
+    public DataInitializer(
+            UserRepository userRepository,
+            TaskStatusRepository taskStatusRepository,
+            LabelRepository labelRepository,
+            PasswordEncoder passwordEncoder
+    ) {
+        this.userRepository = userRepository;
+        this.taskStatusRepository = taskStatusRepository;
+        this.labelRepository = labelRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     /**
      * Runs data initialization.

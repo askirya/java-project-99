@@ -2,10 +2,10 @@ package hexlet.code.controller;
 
 import hexlet.code.dto.task.TaskCreateDTO;
 import hexlet.code.dto.task.TaskDTO;
+import hexlet.code.dto.task.TaskParamsDTO;
 import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.service.TaskService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,17 +26,25 @@ import java.util.List;
 @RequestMapping("/api/tasks")
 public class TaskController {
 
-    @Autowired
-    private TaskService taskService;
+    private final TaskService taskService;
 
     /**
-     * Returns all tasks.
+     * Creates task controller.
+     * @param taskService task service
+     */
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
+    }
+
+    /**
+     * Returns tasks filtered by optional query parameters.
+     * @param params filter parameters
      * @return list of tasks
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<TaskDTO> index() {
-        return taskService.getAll();
+    public List<TaskDTO> index(TaskParamsDTO params) {
+        return taskService.getAll(params);
     }
 
     /**

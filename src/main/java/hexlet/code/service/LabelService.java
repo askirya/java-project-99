@@ -9,7 +9,6 @@ import hexlet.code.mapper.LabelMapper;
 import hexlet.code.model.Label;
 import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,14 +22,21 @@ public class LabelService {
     private static final String LABEL_NOT_FOUND = "Label with id %s not found";
     private static final String LABEL_HAS_TASKS = "Label with id %s is used by tasks and cannot be deleted";
 
-    @Autowired
-    private LabelRepository labelRepository;
+    private final LabelRepository labelRepository;
+    private final TaskRepository taskRepository;
+    private final LabelMapper labelMapper;
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private LabelMapper labelMapper;
+    /**
+     * Creates label service.
+     * @param labelRepository labels repository
+     * @param taskRepository tasks repository
+     * @param labelMapper label mapper
+     */
+    public LabelService(LabelRepository labelRepository, TaskRepository taskRepository, LabelMapper labelMapper) {
+        this.labelRepository = labelRepository;
+        this.taskRepository = taskRepository;
+        this.labelMapper = labelMapper;
+    }
 
     /**
      * Returns all labels.

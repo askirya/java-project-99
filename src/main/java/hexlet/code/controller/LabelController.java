@@ -5,7 +5,6 @@ import hexlet.code.dto.label.LabelDTO;
 import hexlet.code.dto.label.LabelUpdateDTO;
 import hexlet.code.service.LabelService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,8 +25,15 @@ import java.util.List;
 @RequestMapping("/api/labels")
 public class LabelController {
 
-    @Autowired
-    private LabelService labelService;
+    private final LabelService labelService;
+
+    /**
+     * Creates label controller.
+     * @param labelService label service
+     */
+    public LabelController(LabelService labelService) {
+        this.labelService = labelService;
+    }
 
     /**
      * Returns all labels.

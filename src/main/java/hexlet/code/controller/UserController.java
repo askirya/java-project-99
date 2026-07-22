@@ -5,7 +5,6 @@ import hexlet.code.dto.user.UserDTO;
 import hexlet.code.dto.user.UserUpdateDTO;
 import hexlet.code.service.UserService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -27,8 +26,15 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    /**
+     * Creates user controller.
+     * @param userService user service
+     */
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     /**
      * Returns all users.

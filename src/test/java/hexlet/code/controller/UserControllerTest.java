@@ -81,8 +81,9 @@ class UserControllerTest {
 
         String body = result.getResponse().getContentAsString();
         assertThatJson(body).isArray().isNotEmpty();
-        assertThat(body).doesNotContain("password");
-        assertThat(body).doesNotContain("passwordDigest");
+        assertThat(body)
+                .doesNotContain("password")
+                .doesNotContain("passwordDigest");
     }
 
     @Test
@@ -98,8 +99,9 @@ class UserControllerTest {
                 v -> v.node("firstName").isEqualTo(testUser.getFirstName()),
                 v -> v.node("lastName").isEqualTo(testUser.getLastName())
         );
-        assertThat(body).doesNotContain("password");
-        assertThat(body).doesNotContain("passwordDigest");
+        assertThat(body)
+                .doesNotContain("password")
+                .doesNotContain("passwordDigest");
     }
 
     @Test

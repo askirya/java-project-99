@@ -9,7 +9,6 @@ import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,14 +22,21 @@ public class UserService {
     private static final String USER_NOT_FOUND = "User with id %s not found";
     private static final String USER_HAS_TASKS = "User with id %s is assigned to tasks and cannot be deleted";
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final UserMapper userMapper;
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private UserMapper userMapper;
+    /**
+     * Creates user service.
+     * @param userRepository users repository
+     * @param taskRepository tasks repository
+     * @param userMapper user mapper
+     */
+    public UserService(UserRepository userRepository, TaskRepository taskRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.taskRepository = taskRepository;
+        this.userMapper = userMapper;
+    }
 
     /**
      * Returns all users.

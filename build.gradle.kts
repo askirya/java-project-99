@@ -79,6 +79,7 @@ tasks.jacocoTestReport {
 
 tasks.test {
     useJUnitPlatform()
+    jvmArgs("-Djdk.attach.allowAttachSelf=true")
     finalizedBy(tasks.jacocoTestReport)
 }
 
@@ -93,5 +94,9 @@ sonar {
             "**/certs/**,**/static/**,**/node_modules/**,**/package-lock.json,"
                 + "Dockerfile,.github/workflows/hexlet-check.yml"
         )
+        // Dockerfile-related rule; Hexlet CI uses Gradle without dependency verification metadata.
+        property("sonar.issue.ignore.multicriteria", "e1")
+        property("sonar.issue.ignore.multicriteria.e1.ruleKey", "kotlin:S6474")
+        property("sonar.issue.ignore.multicriteria.e1.resourceKey", "**/*")
     }
 }

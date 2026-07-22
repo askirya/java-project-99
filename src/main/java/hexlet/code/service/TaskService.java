@@ -2,12 +2,13 @@ package hexlet.code.service;
 
 import hexlet.code.dto.task.TaskCreateDTO;
 import hexlet.code.dto.task.TaskDTO;
+import hexlet.code.dto.task.TaskParamsDTO;
 import hexlet.code.dto.task.TaskUpdateDTO;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.TaskMapper;
 import hexlet.code.model.Task;
 import hexlet.code.repository.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import hexlet.code.specification.TaskSpecification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,18 +21,33 @@ public class TaskService {
 
     private static final String TASK_NOT_FOUND = "Task with id %s not found";
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private TaskMapper taskMapper;
+    private final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
+    private final TaskSpecification taskSpecification;
 
     /**
-     * Returns all tasks.
+     * Creates task service.
+     * @param taskRepository tasks repository
+     * @param taskMapper task mapper
+     * @param taskSpecification task filter specification
+     */
+    public TaskService(
+            TaskRepository taskRepository,
+            TaskMapper taskMapper,
+            TaskSpecification taskSpecification
+    ) {
+        this.taskRepository = taskRepository;
+        this.taskMapper = taskMapper;
+        this.taskSpecification = taskSpecification;
+    }
+
+    /**
+     * Returns tasks filtered by query parameters.
+     * @param params filter parameters
      * @return list of tasks
      */
-    public List<TaskDTO> getAll() {
-        return taskRepository.findAll().stream()
+    public List<TaskDTO> getAll(TaskParamsDTO params) {
+        return taskRepository.findAll(taskSpecification.build(params)).stream()
                 .map(taskMapper::map)
                 .toList();
     }

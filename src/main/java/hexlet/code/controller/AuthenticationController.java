@@ -2,7 +2,6 @@ package hexlet.code.controller;
 
 import hexlet.code.dto.AuthRequest;
 import hexlet.code.util.JWTUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,11 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class AuthenticationController {
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
+    private final JWTUtils jwtUtils;
 
-    @Autowired
-    private JWTUtils jwtUtils;
+    /**
+     * Creates authentication controller.
+     * @param authenticationManager authentication manager
+     * @param jwtUtils JWT utility
+     */
+    public AuthenticationController(AuthenticationManager authenticationManager, JWTUtils jwtUtils) {
+        this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
+    }
 
     /**
      * Authenticates user and returns JWT.

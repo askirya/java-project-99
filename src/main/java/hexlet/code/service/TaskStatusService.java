@@ -9,7 +9,6 @@ import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,14 +22,25 @@ public class TaskStatusService {
     private static final String STATUS_NOT_FOUND = "Task status with id %s not found";
     private static final String STATUS_HAS_TASKS = "Task status with id %s is used by tasks and cannot be deleted";
 
-    @Autowired
-    private TaskStatusRepository taskStatusRepository;
+    private final TaskStatusRepository taskStatusRepository;
+    private final TaskRepository taskRepository;
+    private final TaskStatusMapper taskStatusMapper;
 
-    @Autowired
-    private TaskRepository taskRepository;
-
-    @Autowired
-    private TaskStatusMapper taskStatusMapper;
+    /**
+     * Creates task status service.
+     * @param taskStatusRepository statuses repository
+     * @param taskRepository tasks repository
+     * @param taskStatusMapper status mapper
+     */
+    public TaskStatusService(
+            TaskStatusRepository taskStatusRepository,
+            TaskRepository taskRepository,
+            TaskStatusMapper taskStatusMapper
+    ) {
+        this.taskStatusRepository = taskStatusRepository;
+        this.taskRepository = taskRepository;
+        this.taskStatusMapper = taskStatusMapper;
+    }
 
     /**
      * Returns all task statuses.

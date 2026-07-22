@@ -1,7 +1,6 @@
 package hexlet.code.config;
 
 import hexlet.code.service.CustomUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,23 +24,15 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtDecoder jwtDecoder;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private CustomUserDetailsService userService;
-
     /**
      * Configures HTTP security.
      * @param http http security
+     * @param jwtDecoder JWT decoder
      * @return filter chain
      * @throws Exception on configuration errors
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtDecoder jwtDecoder) throws Exception {
         // Stateless JWT API does not use cookie sessions, so CSRF protection is not applicable.
         return http
                 .csrf(csrf -> csrf.disable()) // NOSONAR java:S4502
@@ -65,10 +56,15 @@ public class SecurityConfig {
 
     /**
      * Provides authentication manager.
+     * @param passwordEncoder password encoder
+     * @param userService user details service
      * @return authentication manager
      */
     @Bean
-    public AuthenticationManager authenticationManager() {
+    public AuthenticationManager authenticationManager(
+            PasswordEncoder passwordEncoder,
+            CustomUserDetailsService userService
+    ) {
         var provider = new DaoAuthenticationProvider(userService);
         provider.setPasswordEncoder(passwordEncoder);
         return new ProviderManager(provider);
