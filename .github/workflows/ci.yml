@@ -37,13 +37,22 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: Disable SonarCloud Automatic Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "::error::Secret SONAR_TOKEN is missing"
+            exit 1
+          fi
+          # CI analysis conflicts with Automatic Analysis — disable autoscan for this project
+          curl -sS -u "$SONAR_TOKEN:" -X POST "https://sonarcloud.io/api/settings/set" \
+            -d "key=sonar.autoscan.enabled" \
+            -d "value=false" \
+            -d "component=askirya_java-project-99"
+
       - name: Build and analyze with SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          if [ -z "$SONAR_TOKEN" ]; then
-            echo "::error::Secret SONAR_TOKEN is missing. Add it in GitHub → Settings → Secrets and variables → Actions"
-            exit 1
-          fi
-          ./gradlew sonar --info -Dsonar.token="$SONAR_TOKEN" -Dsonar.qualitygate.wait=false
+        run: ./gradlew sonar --info -Dsonar.token="$SONAR_TOKEN" -Dsonar.qualitygate.wait=false
