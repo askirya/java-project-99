@@ -3,9 +3,11 @@ package hexlet.code.service;
 import hexlet.code.dto.taskstatus.TaskStatusCreateDTO;
 import hexlet.code.dto.taskstatus.TaskStatusDTO;
 import hexlet.code.dto.taskstatus.TaskStatusUpdateDTO;
+import hexlet.code.exception.ResourceAssociatedException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.TaskStatusMapper;
 import hexlet.code.model.TaskStatus;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,13 @@ import java.util.List;
 public class TaskStatusService {
 
     private static final String STATUS_NOT_FOUND = "Task status with id %s not found";
+    private static final String STATUS_HAS_TASKS = "Task status with id %s is used by tasks and cannot be deleted";
 
     @Autowired
     private TaskStatusRepository taskStatusRepository;
+
+    @Autowired
+    private TaskRepository taskRepository;
 
     @Autowired
     private TaskStatusMapper taskStatusMapper;
@@ -74,7 +80,11 @@ public class TaskStatusService {
      * @param id status id
      */
     public void delete(Long id) {
-        taskStatusRepository.delete(findStatus(id));
+        findStatus(id);
+        if (taskRepository.existsByTaskStatusId(id)) {
+            throw new ResourceAssociatedException(STATUS_HAS_TASKS.formatted(id));
+        }
+        taskStatusRepository.deleteById(id);
     }
 
     private TaskStatus findStatus(Long id) {

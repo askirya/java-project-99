@@ -3,9 +3,11 @@ package hexlet.code.service;
 import hexlet.code.dto.user.UserCreateDTO;
 import hexlet.code.dto.user.UserDTO;
 import hexlet.code.dto.user.UserUpdateDTO;
+import hexlet.code.exception.ResourceAssociatedException;
 import hexlet.code.exception.ResourceNotFoundException;
 import hexlet.code.mapper.UserMapper;
 import hexlet.code.model.User;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,13 @@ import java.util.List;
 public class UserService {
 
     private static final String USER_NOT_FOUND = "User with id %s not found";
+    private static final String USER_HAS_TASKS = "User with id %s is assigned to tasks and cannot be deleted";
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private TaskRepository taskRepository;
 
     @Autowired
     private UserMapper userMapper;
@@ -74,7 +80,11 @@ public class UserService {
      * @param id user id
      */
     public void delete(Long id) {
-        userRepository.delete(findUser(id));
+        findUser(id);
+        if (taskRepository.existsByAssigneeId(id)) {
+            throw new ResourceAssociatedException(USER_HAS_TASKS.formatted(id));
+        }
+        userRepository.deleteById(id);
     }
 
     private User findUser(Long id) {

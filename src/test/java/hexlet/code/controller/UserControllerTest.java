@@ -2,6 +2,7 @@ package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import hexlet.code.model.User;
+import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.UserRepository;
 import org.instancio.Instancio;
 import org.instancio.Select;
@@ -41,6 +42,9 @@ class UserControllerTest {
     private UserRepository userRepository;
 
     @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser;
@@ -48,6 +52,7 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
+        taskRepository.deleteAll();
         userRepository.deleteAll();
 
         testUser = Instancio.of(User.class)

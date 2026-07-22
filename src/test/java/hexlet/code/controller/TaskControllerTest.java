@@ -1,6 +1,7 @@
 package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
 import hexlet.code.repository.TaskRepository;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-class TaskStatusControllerTest {
+class TaskControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -41,10 +42,10 @@ class TaskStatusControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private TaskStatusRepository taskStatusRepository;
+    private TaskRepository taskRepository;
 
     @Autowired
-    private TaskRepository taskRepository;
+    private TaskStatusRepository taskStatusRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -52,7 +53,9 @@ class TaskStatusControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    private TaskStatus testStatus;
+    private User testUser;
+    private TaskStatus draftStatus;
+    private Task testTask;
     private JwtRequestPostProcessor token;
 
     @BeforeEach
@@ -61,31 +64,44 @@ class TaskStatusControllerTest {
         taskStatusRepository.deleteAll();
         userRepository.deleteAll();
 
-        User user = Instancio.of(User.class)
+        testUser = Instancio.of(User.class)
                 .ignore(Select.field(User::getId))
                 .ignore(Select.field(User::getCreatedAt))
                 .ignore(Select.field(User::getUpdatedAt))
                 .create();
-        user.setEmail("status-user@google.com");
-        user.setPasswordDigest(passwordEncoder.encode("password"));
-        userRepository.save(user);
-        token = jwt().jwt(builder -> builder.subject(user.getEmail()));
+        testUser.setEmail("task-user@google.com");
+        testUser.setPasswordDigest(passwordEncoder.encode("password"));
+        userRepository.save(testUser);
+        token = jwt().jwt(builder -> builder.subject(testUser.getEmail()));
 
-        testStatus = new TaskStatus();
-        testStatus.setName("Draft");
-        testStatus.setSlug("draft");
-        taskStatusRepository.save(testStatus);
+        draftStatus = new TaskStatus();
+        draftStatus.setName("Draft");
+        draftStatus.setSlug("draft");
+        taskStatusRepository.save(draftStatus);
+
+        TaskStatus reviewStatus = new TaskStatus();
+        reviewStatus.setName("ToReview");
+        reviewStatus.setSlug("to_review");
+        taskStatusRepository.save(reviewStatus);
+
+        testTask = new Task();
+        testTask.setName("Task 1");
+        testTask.setDescription("Description of task 1");
+        testTask.setIndex(3140);
+        testTask.setTaskStatus(draftStatus);
+        testTask.setAssignee(testUser);
+        taskRepository.save(testTask);
     }
 
     @Test
     void testIndexWithoutAuth() throws Exception {
-        mockMvc.perform(get("/api/task_statuses"))
+        mockMvc.perform(get("/api/tasks"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void testIndex() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/task_statuses").with(token))
+        MvcResult result = mockMvc.perform(get("/api/tasks").with(token))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -95,25 +111,31 @@ class TaskStatusControllerTest {
 
     @Test
     void testShow() throws Exception {
-        MvcResult result = mockMvc.perform(get("/api/task_statuses/" + testStatus.getId()).with(token))
+        MvcResult result = mockMvc.perform(get("/api/tasks/" + testTask.getId()).with(token))
                 .andExpect(status().isOk())
                 .andReturn();
 
         String body = result.getResponse().getContentAsString();
         assertThatJson(body).and(
-                v -> v.node("id").isEqualTo(testStatus.getId()),
-                v -> v.node("name").isEqualTo("Draft"),
-                v -> v.node("slug").isEqualTo("draft")
+                v -> v.node("id").isEqualTo(testTask.getId()),
+                v -> v.node("title").isEqualTo("Task 1"),
+                v -> v.node("content").isEqualTo("Description of task 1"),
+                v -> v.node("status").isEqualTo("draft"),
+                v -> v.node("assignee_id").isEqualTo(testUser.getId()),
+                v -> v.node("index").isEqualTo(3140)
         );
     }
 
     @Test
     void testCreate() throws Exception {
-        var data = new HashMap<String, String>();
-        data.put("name", "New");
-        data.put("slug", "new");
+        var data = new HashMap<String, Object>();
+        data.put("index", 12);
+        data.put("assignee_id", testUser.getId());
+        data.put("title", "Test title");
+        data.put("content", "Test content");
+        data.put("status", "draft");
 
-        MvcResult result = mockMvc.perform(post("/api/task_statuses")
+        MvcResult result = mockMvc.perform(post("/api/tasks")
                         .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
@@ -122,20 +144,23 @@ class TaskStatusControllerTest {
 
         String body = result.getResponse().getContentAsString();
         assertThatJson(body).and(
-                v -> v.node("name").isEqualTo("New"),
-                v -> v.node("slug").isEqualTo("new")
+                v -> v.node("title").isEqualTo("Test title"),
+                v -> v.node("content").isEqualTo("Test content"),
+                v -> v.node("status").isEqualTo("draft"),
+                v -> v.node("assignee_id").isEqualTo(testUser.getId()),
+                v -> v.node("index").isEqualTo(12)
         );
 
-        assertThat(taskStatusRepository.findBySlug("new")).isPresent();
+        assertThat(taskRepository.findAll()).hasSize(2);
     }
 
     @Test
     void testCreateWithInvalidData() throws Exception {
-        var data = new HashMap<String, String>();
-        data.put("name", "");
-        data.put("slug", "");
+        var data = new HashMap<String, Object>();
+        data.put("title", "");
+        data.put("status", "draft");
 
-        mockMvc.perform(post("/api/task_statuses")
+        mockMvc.perform(post("/api/tasks")
                         .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
@@ -144,10 +169,12 @@ class TaskStatusControllerTest {
 
     @Test
     void testUpdate() throws Exception {
-        var data = new HashMap<String, String>();
-        data.put("name", "newStatus");
+        var data = new HashMap<String, Object>();
+        data.put("title", "New title");
+        data.put("content", "New content");
+        data.put("status", "to_review");
 
-        MvcResult result = mockMvc.perform(put("/api/task_statuses/" + testStatus.getId())
+        MvcResult result = mockMvc.perform(put("/api/tasks/" + testTask.getId())
                         .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
@@ -156,26 +183,39 @@ class TaskStatusControllerTest {
 
         String body = result.getResponse().getContentAsString();
         assertThatJson(body).and(
-                v -> v.node("name").isEqualTo("newStatus"),
-                v -> v.node("slug").isEqualTo("draft")
+                v -> v.node("title").isEqualTo("New title"),
+                v -> v.node("content").isEqualTo("New content"),
+                v -> v.node("status").isEqualTo("to_review"),
+                v -> v.node("assignee_id").isEqualTo(testUser.getId())
         );
 
-        TaskStatus status = taskStatusRepository.findById(testStatus.getId()).orElseThrow();
-        assertThat(status.getName()).isEqualTo("newStatus");
-        assertThat(status.getSlug()).isEqualTo("draft");
+        Task task = taskRepository.findById(testTask.getId()).orElseThrow();
+        assertThat(task.getName()).isEqualTo("New title");
+        assertThat(task.getDescription()).isEqualTo("New content");
+        assertThat(task.getTaskStatus().getSlug()).isEqualTo("to_review");
     }
 
     @Test
     void testDelete() throws Exception {
-        mockMvc.perform(delete("/api/task_statuses/" + testStatus.getId()).with(token))
+        mockMvc.perform(delete("/api/tasks/" + testTask.getId()).with(token))
                 .andExpect(status().isNoContent());
 
-        assertThat(taskStatusRepository.existsById(testStatus.getId())).isFalse();
+        assertThat(taskRepository.existsById(testTask.getId())).isFalse();
     }
 
     @Test
-    void testFindBySlug() {
-        assertThat(taskStatusRepository.findBySlug("draft")).isPresent();
-        assertThat(taskStatusRepository.findBySlug("missing")).isEmpty();
+    void testCannotDeleteUserAssignedToTask() throws Exception {
+        mockMvc.perform(delete("/api/users/" + testUser.getId()).with(token))
+                .andExpect(status().isConflict());
+
+        assertThat(userRepository.existsById(testUser.getId())).isTrue();
+    }
+
+    @Test
+    void testCannotDeleteStatusUsedByTask() throws Exception {
+        mockMvc.perform(delete("/api/task_statuses/" + draftStatus.getId()).with(token))
+                .andExpect(status().isConflict());
+
+        assertThat(taskStatusRepository.existsById(draftStatus.getId())).isTrue();
     }
 }

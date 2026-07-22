@@ -37,19 +37,38 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      # Public settings API cannot disable Automatic Analysis.
+      # UI uses this internal endpoint; CI must call it before ./gradlew sonar.
       - name: Disable SonarCloud Automatic Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if [ -z "$SONAR_TOKEN" ]; then
+          set -euo pipefail
+          if [ -z "${SONAR_TOKEN:-}" ]; then
             echo "::error::Secret SONAR_TOKEN is missing"
             exit 1
           fi
-          # CI analysis conflicts with Automatic Analysis — disable autoscan for this project
-          curl -sS -u "$SONAR_TOKEN:" -X POST "https://sonarcloud.io/api/settings/set" \
-            -d "key=sonar.autoscan.enabled" \
-            -d "value=false" \
-            -d "component=askirya_java-project-99"
+
+          PROJECT_KEY="askirya_java-project-99"
+          UI_URL="https://sonarcloud.io/project/analysis_method?id=${PROJECT_KEY}"
+
+          HTTP_CODE=$(curl -sS -o /tmp/sonar-autoscan-body.txt -w "%{http_code}" \
+            -u "${SONAR_TOKEN}:" \
+            -X POST "https://sonarcloud.io/api/autoscan/activation" \
+            -d "enable=false" \
+            -d "projectKey=${PROJECT_KEY}")
+
+          echo "api/autoscan/activation HTTP ${HTTP_CODE}"
+          cat /tmp/sonar-autoscan-body.txt || true
+          echo
+
+          if [ "${HTTP_CODE}" != "204" ] && [ "${HTTP_CODE}" != "200" ]; then
+            echo "::error::Could not disable Automatic Analysis (HTTP ${HTTP_CODE})."
+            echo "Open ${UI_URL} as project admin and turn off Automatic Analysis, then re-run CI."
+            exit 1
+          fi
+
+          echo "Automatic Analysis disabled for ${PROJECT_KEY}"
 
       - name: Build and analyze with SonarCloud
         env:
