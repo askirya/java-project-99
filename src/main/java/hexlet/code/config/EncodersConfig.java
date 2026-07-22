@@ -6,9 +6,6 @@ import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-import hexlet.code.component.RsaKeyProperties;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -18,15 +15,18 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.UUID;
+
 /**
  * Password and JWT encoder configuration.
+ * RSA keys are generated at runtime so private keys are not stored in the repository.
  */
 @Configuration
-@EnableConfigurationProperties(RsaKeyProperties.class)
 public class EncodersConfig {
-
-    @Autowired
-    private RsaKeyProperties rsaKeys;
 
     /**
      * Provides BCrypt password encoder.
@@ -38,13 +38,30 @@ public class EncodersConfig {
     }
 
     /**
+     * Generates an RSA key pair for JWT signing.
+     * @return key pair
+     */
+    @Bean
+    public KeyPair rsaKeyPair() {
+        try {
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+            generator.initialize(2048);
+            return generator.generateKeyPair();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to generate RSA key pair", e);
+        }
+    }
+
+    /**
      * Provides JWT encoder.
+     * @param keyPair RSA key pair
      * @return jwt encoder
      */
     @Bean
-    public JwtEncoder jwtEncoder() {
-        JWK jwk = new RSAKey.Builder(rsaKeys.getPublicKey())
-                .privateKey(rsaKeys.getPrivateKey())
+    public JwtEncoder jwtEncoder(KeyPair keyPair) {
+        JWK jwk = new RSAKey.Builder((RSAPublicKey) keyPair.getPublic())
+                .privateKey((RSAPrivateKey) keyPair.getPrivate())
+                .keyID(UUID.randomUUID().toString())
                 .build();
         JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
         return new NimbusJwtEncoder(jwks);
@@ -52,10 +69,11 @@ public class EncodersConfig {
 
     /**
      * Provides JWT decoder.
+     * @param keyPair RSA key pair
      * @return jwt decoder
      */
     @Bean
-    public JwtDecoder jwtDecoder() {
-        return NimbusJwtDecoder.withPublicKey(rsaKeys.getPublicKey()).build();
+    public JwtDecoder jwtDecoder(KeyPair keyPair) {
+        return NimbusJwtDecoder.withPublicKey((RSAPublicKey) keyPair.getPublic()).build();
     }
 }

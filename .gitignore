@@ -9,6 +9,10 @@ build/
 node_modules/
 .tools/
 
+### Secrets / local keys ###
+src/main/resources/certs/
+*.pem
+
 ### STS ###
 .apt_generated
 .classpath

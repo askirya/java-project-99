@@ -18,6 +18,8 @@ import java.util.List;
 @Service
 public class UserService {
 
+    private static final String USER_NOT_FOUND = "User with id %s not found";
+
     @Autowired
     private UserRepository userRepository;
 
@@ -40,9 +42,7 @@ public class UserService {
      * @return user DTO
      */
     public UserDTO getById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        return userMapper.map(user);
+        return userMapper.map(findUser(id));
     }
 
     /**
@@ -63,8 +63,7 @@ public class UserService {
      * @return updated user
      */
     public UserDTO update(Long id, UserUpdateDTO dto) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+        User user = findUser(id);
         userMapper.update(dto, user);
         userRepository.save(user);
         return userMapper.map(user);
@@ -75,8 +74,11 @@ public class UserService {
      * @param id user id
      */
     public void delete(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        userRepository.delete(user);
+        userRepository.delete(findUser(id));
+    }
+
+    private User findUser(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(USER_NOT_FOUND.formatted(id)));
     }
 }

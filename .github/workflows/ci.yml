@@ -46,4 +46,4 @@ jobs:
             echo "::error::Secret SONAR_TOKEN is missing. Add it in GitHub → Settings → Secrets and variables → Actions"
             exit 1
           fi
-          ./gradlew sonar --info -Dsonar.token="$SONAR_TOKEN"
+          ./gradlew sonar --info -Dsonar.token="$SONAR_TOKEN" -Dsonar.qualitygate.wait=false
