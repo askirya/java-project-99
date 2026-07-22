@@ -1,9 +1,11 @@
 package hexlet.code.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import hexlet.code.model.Label;
 import hexlet.code.model.Task;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
@@ -21,6 +23,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +52,9 @@ class TaskControllerTest {
     private TaskStatusRepository taskStatusRepository;
 
     @Autowired
+    private LabelRepository labelRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -55,12 +62,14 @@ class TaskControllerTest {
 
     private User testUser;
     private TaskStatus draftStatus;
+    private Label bugLabel;
     private Task testTask;
     private JwtRequestPostProcessor token;
 
     @BeforeEach
     void setUp() {
         taskRepository.deleteAll();
+        labelRepository.deleteAll();
         taskStatusRepository.deleteAll();
         userRepository.deleteAll();
 
@@ -83,6 +92,10 @@ class TaskControllerTest {
         reviewStatus.setName("ToReview");
         reviewStatus.setSlug("to_review");
         taskStatusRepository.save(reviewStatus);
+
+        bugLabel = new Label();
+        bugLabel.setName("bug");
+        labelRepository.save(bugLabel);
 
         testTask = new Task();
         testTask.setName("Task 1");
@@ -134,6 +147,7 @@ class TaskControllerTest {
         data.put("title", "Test title");
         data.put("content", "Test content");
         data.put("status", "draft");
+        data.put("taskLabelIds", List.of(bugLabel.getId()));
 
         MvcResult result = mockMvc.perform(post("/api/tasks")
                         .with(token)
@@ -148,10 +162,34 @@ class TaskControllerTest {
                 v -> v.node("content").isEqualTo("Test content"),
                 v -> v.node("status").isEqualTo("draft"),
                 v -> v.node("assignee_id").isEqualTo(testUser.getId()),
-                v -> v.node("index").isEqualTo(12)
+                v -> v.node("index").isEqualTo(12),
+                v -> v.node("taskLabelIds").isArray().isEqualTo(List.of(bugLabel.getId()))
         );
 
         assertThat(taskRepository.findAll()).hasSize(2);
+        Task created = taskRepository.findAll().stream()
+                .filter(task -> "Test title".equals(task.getName()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(created.getLabels()).extracting(Label::getId).containsExactly(bugLabel.getId());
+    }
+
+    @Test
+    void testUpdateLabels() throws Exception {
+        var data = new HashMap<String, Object>();
+        data.put("taskLabelIds", Set.of(bugLabel.getId()));
+
+        MvcResult result = mockMvc.perform(put("/api/tasks/" + testTask.getId())
+                        .with(token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        assertThatJson(body).and(
+                v -> v.node("taskLabelIds").isArray().isEqualTo(List.of(bugLabel.getId()))
+        );
     }
 
     @Test

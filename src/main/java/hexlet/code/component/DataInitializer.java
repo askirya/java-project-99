@@ -1,7 +1,9 @@
 package hexlet.code.component;
 
+import hexlet.code.model.Label;
 import hexlet.code.model.TaskStatus;
 import hexlet.code.model.User;
+import hexlet.code.repository.LabelRepository;
 import hexlet.code.repository.TaskStatusRepository;
 import hexlet.code.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,10 +13,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Seeds initial admin user and default task statuses on application startup.
+ * Seeds initial admin user, default task statuses and labels on application startup.
  */
 @Component
 public class DataInitializer implements ApplicationRunner {
@@ -24,6 +27,9 @@ public class DataInitializer implements ApplicationRunner {
 
     @Autowired
     private TaskStatusRepository taskStatusRepository;
+
+    @Autowired
+    private LabelRepository labelRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -36,6 +42,7 @@ public class DataInitializer implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         createAdmin();
         createDefaultTaskStatuses();
+        createDefaultLabels();
     }
 
     private void createAdmin() {
@@ -67,6 +74,17 @@ public class DataInitializer implements ApplicationRunner {
             status.setName(entry.getKey());
             status.setSlug(entry.getValue());
             taskStatusRepository.save(status);
+        }
+    }
+
+    private void createDefaultLabels() {
+        for (String name : List.of("feature", "bug")) {
+            if (labelRepository.findByName(name).isPresent()) {
+                continue;
+            }
+            Label label = new Label();
+            label.setName(name);
+            labelRepository.save(label);
         }
     }
 }

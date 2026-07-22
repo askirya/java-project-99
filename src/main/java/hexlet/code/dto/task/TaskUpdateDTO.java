@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.openapitools.jackson.nullable.JsonNullable;
 
+import java.util.Set;
+
 /**
  * DTO for partial task update.
  */
@@ -24,4 +26,6 @@ public class TaskUpdateDTO {
     private JsonNullable<String> content = JsonNullable.undefined();
 
     private JsonNullable<String> status = JsonNullable.undefined();
+
+    private JsonNullable<Set<Long>> taskLabelIds = JsonNullable.undefined();
 }

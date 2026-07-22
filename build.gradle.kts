@@ -31,6 +31,11 @@ val jacksonNullableVersion = "0.2.6"
 val lombokMapstructBindingVersion = "0.2.0"
 val instancioVersion = "5.4.0"
 val jsonUnitVersion = "4.1.0"
+val springdocVersion = "2.8.13"
+
+dependencyLocking {
+    lockAllConfigurations()
+}
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -38,6 +43,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
 
     implementation("org.mapstruct:mapstruct:$mapstructVersion")
     annotationProcessor("org.mapstruct:mapstruct-processor:$mapstructVersion")
@@ -84,7 +90,8 @@ sonar {
         property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml")
         property(
             "sonar.exclusions",
-            "**/certs/**,**/static/**,**/node_modules/**,**/package-lock.json"
+            "**/certs/**,**/static/**,**/node_modules/**,**/package-lock.json,"
+                + "Dockerfile,.github/workflows/hexlet-check.yml"
         )
     }
 }
