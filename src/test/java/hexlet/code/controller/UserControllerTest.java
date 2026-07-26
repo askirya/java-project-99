@@ -234,4 +234,20 @@ class UserControllerTest {
                         .content(objectMapper.writeValueAsString(data)))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void testLoginIgnoresInvalidBearerToken() throws Exception {
+        var data = new HashMap<String, String>();
+        data.put("username", testUser.getEmail());
+        data.put("password", "password");
+
+        MvcResult result = mockMvc.perform(post("/api/login")
+                        .header("Authorization", "Bearer eyJhbGciOiJSUzI1NiJ9.invalid.signature")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        assertThat(result.getResponse().getContentAsString()).isNotBlank();
+    }
 }
