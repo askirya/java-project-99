@@ -6,6 +6,7 @@ plugins {
     id("org.springframework.boot") version "3.5.6"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.sonarqube") version "7.0.1.6134"
+    id("io.sentry.jvm.gradle") version "6.16.0"
 }
 
 group = "hexlet.code"
@@ -92,11 +93,20 @@ sonar {
         property(
             "sonar.exclusions",
             "**/certs/**,**/static/**,**/node_modules/**,**/package-lock.json,"
-                + "Dockerfile,.github/workflows/hexlet-check.yml"
+                + ".github/workflows/hexlet-check.yml"
         )
-        // Dockerfile-related rule; Hexlet CI uses Gradle without dependency verification metadata.
-        property("sonar.issue.ignore.multicriteria", "e1")
-        property("sonar.issue.ignore.multicriteria.e1.ruleKey", "kotlin:S6474")
-        property("sonar.issue.ignore.multicriteria.e1.resourceKey", "**/*")
+    }
+}
+
+val sentryAuthToken = System.getenv("SENTRY_AUTH_TOKEN")
+
+sentry {
+    // Source context upload needs SENTRY_AUTH_TOKEN (never commit the token).
+    includeSourceContext.set(!sentryAuthToken.isNullOrBlank())
+    org.set(System.getenv("SENTRY_ORG") ?: "ippach")
+    projectName.set(System.getenv("SENTRY_PROJECT") ?: "java")
+    authToken.set(sentryAuthToken ?: "")
+    autoInstallation {
+        enabled.set(true)
     }
 }

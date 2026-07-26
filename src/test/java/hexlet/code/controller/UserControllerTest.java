@@ -119,7 +119,6 @@ class UserControllerTest {
         data.put("password", "some-password");
 
         MvcResult result = mockMvc.perform(post("/api/users")
-                        .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
                 .andExpect(status().isCreated())
@@ -145,7 +144,6 @@ class UserControllerTest {
         data.put("password", "ab");
 
         mockMvc.perform(post("/api/users")
-                        .with(token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(data)))
                 .andExpect(status().isBadRequest());
