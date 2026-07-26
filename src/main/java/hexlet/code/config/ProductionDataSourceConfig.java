@@ -49,8 +49,13 @@ public class ProductionDataSourceConfig {
             throw new IllegalStateException("DATABASE_URL username is missing");
         }
 
+        int port = dbUri.getPort();
+        if (port == -1) {
+            port = 5432;
+        }
+
         String jdbcUrl = "jdbc:postgresql://" + dbUri.getHost()
-                + ":" + dbUri.getPort()
+                + ":" + port
                 + dbUri.getPath();
 
         HikariDataSource dataSource = new HikariDataSource();
