@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -116,6 +117,7 @@ class TaskControllerTest {
     void testIndex() throws Exception {
         MvcResult result = mockMvc.perform(get("/api/tasks").with(token))
                 .andExpect(status().isOk())
+                .andExpect(header().exists("X-Total-Count"))
                 .andReturn();
 
         String body = result.getResponse().getContentAsString();

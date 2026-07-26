@@ -12,6 +12,8 @@ node_modules/
 ### Secrets / local keys ###
 src/main/resources/certs/
 *.pem
+.env
+.env.*
 
 ### STS ###
 .apt_generated

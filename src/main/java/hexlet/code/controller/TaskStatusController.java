@@ -6,6 +6,7 @@ import hexlet.code.dto.taskstatus.TaskStatusUpdateDTO;
 import hexlet.code.service.TaskStatusService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,9 +41,11 @@ public class TaskStatusController {
      * @return list of statuses
      */
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<TaskStatusDTO> index() {
-        return taskStatusService.getAll();
+    public ResponseEntity<List<TaskStatusDTO>> index() {
+        var statuses = taskStatusService.getAll();
+        return ResponseEntity.ok()
+                .header("X-Total-Count", String.valueOf(statuses.size()))
+                .body(statuses);
     }
 
     /**
