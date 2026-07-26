@@ -72,6 +72,12 @@ checkstyle {
     configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
 }
 
+// Pin JaCoCo so the version does not depend on the Gradle version
+// (Hexlet check regenerates the wrapper to a newer Gradle with a different default).
+jacoco {
+    toolVersion = "0.8.13"
+}
+
 tasks.jacocoTestReport {
     reports {
         xml.required.set(true)
