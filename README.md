@@ -12,23 +12,6 @@
 
 https://java-project-99-htgx.onrender.com/welcome
 
-### Переменные окружения (Render / production)
-
-| Переменная | Назначение |
-|---|---|
-| `DATABASE_URL` | PostgreSQL (Render) |
-| `SENTRY_DSN` | DSN проекта Sentry (runtime) |
-| `SENTRY_AUTH_TOKEN` | Auth token Sentry (сборка / source context) |
-| `SENTRY_ORG` | по умолчанию `ippach` |
-| `SENTRY_PROJECT` | по умолчанию `java` |
-
-Проверка Sentry после деплоя:  
-https://java-project-99-htgx.onrender.com/sentry-debug  
-→ в Sentry должен появиться event `This is a test.`
-
-Админ по умолчанию: `hexlet@example.com` / `qwerty`  
-Swagger: `/swagger-ui.html`
-
 ### Требования
 
 - OpenJDK 21
