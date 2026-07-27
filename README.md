@@ -10,7 +10,12 @@
 
 ### Задеплоенное приложение
 
-https://java-project-99-htgx.onrender.com/welcome
+https://java-project-99-htgx.onrender.com
+
+### Учётные данные для входа
+
+- Email: `hexlet@example.com`
+- Password: `qwerty`
 
 ### Требования
 
@@ -22,5 +27,5 @@ https://java-project-99-htgx.onrender.com/welcome
 ```bash
 make build
 make run
-# открыть http://localhost:8080/welcome
+# открыть http://localhost:8080
 ```

@@ -237,6 +237,28 @@ class TaskControllerTest {
     }
 
     @Test
+    void testCreateWithoutAssignee() throws Exception {
+        var data = new HashMap<String, Object>();
+        data.put("title", "No assignee task");
+        data.put("content", "Content");
+        data.put("status", "draft");
+
+        MvcResult result = mockMvc.perform(post("/api/tasks")
+                        .with(token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(data)))
+                .andExpect(status().isCreated())
+                .andReturn();
+
+        String body = result.getResponse().getContentAsString();
+        assertThatJson(body).and(
+                v -> v.node("title").isEqualTo("No assignee task"),
+                v -> v.node("status").isEqualTo("draft"),
+                v -> v.node("assignee_id").isNull()
+        );
+    }
+
+    @Test
     void testUpdateLabels() throws Exception {
         var data = new HashMap<String, Object>();
         data.put("taskLabelIds", Set.of(bugLabel.getId()));

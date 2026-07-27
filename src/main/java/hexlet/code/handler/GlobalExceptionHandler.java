@@ -1,8 +1,9 @@
 package hexlet.code.handler;
 
-import hexlet.code.exception.ResourceAssociatedException;
 import hexlet.code.exception.ResourceNotFoundException;
 import io.sentry.Sentry;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 /**
  * Global exception handler.
  */
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -24,37 +26,42 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.warn("Resource not found: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     /**
-     * Handles delete conflicts when resource is still referenced.
+     * Handles foreign key and other integrity conflicts.
      * @param ex exception
      * @return 409 response
      */
-    @ExceptionHandler(ResourceAssociatedException.class)
-    public ResponseEntity<String> handleResourceAssociatedException(ResourceAssociatedException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.warn("Data integrity violation", ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Resource is associated with other entities");
     }
 
     /**
-     * Handles authentication failures.
+     * Handles authentication failures without leaking details.
      * @param ex exception
      * @return 401 response
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<String> handleAuthenticationException(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+        log.warn("Authentication failed: {}", ex.getClass().getSimpleName());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
     }
 
     /**
-     * Handles authorization failures.
+     * Handles authorization failures without leaking details.
      * @param ex exception
      * @return 403 response
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
+        log.warn("Access denied: {}", ex.getClass().getSimpleName());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Forbidden");
     }
 
     /**
@@ -64,7 +71,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception ex) {
+        log.error("Unexpected error", ex);
         Sentry.captureException(ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
     }
 }

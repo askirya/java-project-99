@@ -10,9 +10,4 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long>, JpaSpecificationExecutor<Task> {
-    boolean existsByAssigneeId(Long assigneeId);
-
-    boolean existsByTaskStatusId(Long taskStatusId);
-
-    boolean existsByLabelsId(Long labelId);
 }

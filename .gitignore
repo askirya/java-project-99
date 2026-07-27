@@ -45,3 +45,7 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Local / temporary ###
+build-test-out.txt
+*.log

@@ -79,7 +79,7 @@ public class UserController {
      */
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("@userUtils.isOwner(#id)")
+    @PreAuthorize("@userUtils.isOwner(authentication, #id)")
     public UserDTO update(@PathVariable long id, @Valid @RequestBody UserUpdateDTO dto) {
         return userService.update(id, dto);
     }
@@ -90,7 +90,7 @@ public class UserController {
      */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("@userUtils.isOwner(#id)")
+    @PreAuthorize("@userUtils.isOwner(authentication, #id)")
     public void delete(@PathVariable long id) {
         userService.delete(id);
     }

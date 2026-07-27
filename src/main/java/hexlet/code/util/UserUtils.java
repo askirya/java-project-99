@@ -3,7 +3,6 @@ package hexlet.code.util;
 import hexlet.code.model.User;
 import hexlet.code.repository.UserRepository;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 /**
@@ -23,25 +22,25 @@ public class UserUtils {
     }
 
     /**
-     * Returns currently authenticated user.
+     * Returns user for the given authentication.
+     * @param authentication security authentication
      * @return current user or null
      */
-    public User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public User getCurrentUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
-        String email = authentication.getName();
-        return userRepository.findByEmail(email).orElse(null);
+        return userRepository.findByEmail(authentication.getName()).orElse(null);
     }
 
     /**
-     * Checks whether current user owns the given id.
+     * Checks whether authenticated user owns the given id.
+     * @param authentication security authentication
      * @param id user id
      * @return true if owner
      */
-    public boolean isOwner(Long id) {
-        User currentUser = getCurrentUser();
+    public boolean isOwner(Authentication authentication, Long id) {
+        User currentUser = getCurrentUser(authentication);
         return currentUser != null && currentUser.getId().equals(id);
     }
 }

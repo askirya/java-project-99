@@ -57,7 +57,7 @@ public abstract class TaskMapper {
     @Mapping(target = "title", source = "name")
     @Mapping(target = "content", source = "description")
     @Mapping(target = "status", source = "taskStatus.slug")
-    @Mapping(target = "assigneeId", source = "assignee.id")
+    @Mapping(target = "assigneeId", source = "assignee", qualifiedByName = "idFromUser")
     @Mapping(target = "taskLabelIds", source = "labels", qualifiedByName = "idsFromLabels")
     public abstract TaskDTO map(Task task);
 
@@ -91,6 +91,16 @@ public abstract class TaskMapper {
         }
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+    }
+
+    /**
+     * Maps assignee to id without NPE when assignee is absent.
+     * @param user assignee
+     * @return user id or null
+     */
+    @Named("idFromUser")
+    public Long idFromUser(User user) {
+        return user == null ? null : user.getId();
     }
 
     /**
