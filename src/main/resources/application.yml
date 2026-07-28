@@ -8,6 +8,7 @@ spring:
     hibernate:
       ddl-auto: update
   jackson:
+    default-property-inclusion: non_null
     serialization:
       write-dates-as-timestamps: false
 

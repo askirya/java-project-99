@@ -1,27 +1,23 @@
 package hexlet.code.config;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.openapitools.jackson.nullable.JsonNullableModule;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Jackson configuration for JsonNullable support and ISO dates.
+ * Registers JsonNullable support for PATCH/update DTOs.
+ * Avoids Spring Boot jackson customizer types so Hexlet checks
+ * stay compatible across Spring Boot 3 and 4.
  */
 @Configuration
 public class JacksonConfig {
 
     /**
-     * Customizes the Spring Boot ObjectMapper builder without replacing defaults.
-     * @return customizer
+     * JsonNullable Jackson module (auto-registered by Spring Boot).
+     * @return module
      */
     @Bean
-    public Jackson2ObjectMapperBuilderCustomizer jsonCustomizer() {
-        return builder -> builder
-                .serializationInclusion(JsonInclude.Include.NON_NULL)
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .modulesToInstall(new JsonNullableModule());
+    public JsonNullableModule jsonNullableModule() {
+        return new JsonNullableModule();
     }
 }

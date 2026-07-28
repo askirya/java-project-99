@@ -49,5 +49,6 @@ out/
 ### Local / temporary ###
 build-test-out.txt
 build-test-err.txt
+failed-job-logs.txt
 *.log
 _*.log
