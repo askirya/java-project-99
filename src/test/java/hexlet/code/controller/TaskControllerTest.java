@@ -254,8 +254,10 @@ class TaskControllerTest {
         assertThatJson(body).and(
                 v -> v.node("title").isEqualTo("No assignee task"),
                 v -> v.node("status").isEqualTo("draft"),
-                v -> v.node("assignee_id").isNull()
+                v -> v.node("assignee_id").isNull(),
+                v -> v.node("createdAt").isString()
         );
+        assertThat(body).containsPattern("\"createdAt\"\\s*:\\s*\"\\d{4}-\\d{2}-\\d{2}\"");
     }
 
     @Test

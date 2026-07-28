@@ -48,4 +48,6 @@ out/
 
 ### Local / temporary ###
 build-test-out.txt
+build-test-err.txt
 *.log
+_*.log
